@@ -6,10 +6,16 @@ type RedirectRepository interface {
 }
 
 type redirectRepository struct {
-	repository RedirectRepository
 }
 
-func NewRedirectRepository(repository RedirectRepository) {
-	// return &RedirectRepository
+func (r *redirectRepository) Find(code string) (string, error) {
+	panic("implement me")
+}
 
+func (r *redirectRepository) Store(code string, url string) error {
+	panic("implement me")
+}
+
+func NewRedirectRepository() RedirectRepository {
+	return &redirectRepository{}
 }
