@@ -1,4 +1,4 @@
-package us
+package shortener
 
 import (
 	"context"

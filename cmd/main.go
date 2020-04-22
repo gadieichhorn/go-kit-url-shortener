@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gadieichhorn/go-kit-url-shortener/pkg/us"
+	"github.com/gadieichhorn/go-kit-url-shortener/pkg/shortener"
 	"net/http"
 	"os"
 
@@ -15,7 +15,12 @@ import (
 
 func main() {
 
-	logger := log.NewLogfmtLogger(os.Stderr)
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+		logger = log.With(logger, "caller", log.DefaultCaller)
+	}
 
 	fieldKeys := []string{"method", "error"}
 	requestCount := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -37,21 +42,21 @@ func main() {
 	// 	Help:      "The result of each count method.",
 	// }, []string{}) // no fields here
 
-	var svc us.RedirectService
-	svc = us.NewRedirectService(us.NewRedirectRepository())
-	svc = us.NewLoggingMiddleware(logger, svc)
-	svc = us.NewInstrumentingMiddleware(requestCount, requestLatency, svc)
+	var svc shortener.RedirectService
+	svc = shortener.NewRedirectService(shortener.NewRedirectRepository())
+	svc = shortener.NewLoggingMiddleware(logger, svc)
+	svc = shortener.NewInstrumentingMiddleware(requestCount, requestLatency, svc)
 
 	findHandler := httptransport.NewServer(
-		us.MakeFindEndpoint(svc),
-		us.DecodeFindRequest,
-		us.EncodeResponse,
+		shortener.MakeFindEndpoint(svc),
+		shortener.DecodeFindRequest,
+		shortener.EncodeResponse,
 	)
 
 	storeHandler := httptransport.NewServer(
-		us.MakeStoreEndpoint(svc),
-		us.DecodeStoreRequest,
-		us.EncodeResponse,
+		shortener.MakeStoreEndpoint(svc),
+		shortener.DecodeStoreRequest,
+		shortener.EncodeResponse,
 	)
 
 	http.Handle("/store", storeHandler)
